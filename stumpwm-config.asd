@@ -1,11 +1,13 @@
 (asdf:defsystem "stumpwm-config"
   :author "garlic0x1"
   :depends-on (:slynk
+               :str
                :clx-truetype
                :ttf-fonts
-               ;; :swm-gaps ;; broken
-               )
-  :components ((:file "package")
-               (:file "appearance")
-               (:file "modeline")
-               (:file "core")))
+               :dmenu)
+  :components ((:module "src"
+                :components ((:file "package")
+                             (:file "appearance")
+                             (:file "music")
+                             (:file "modeline")
+                             (:file "core")))))

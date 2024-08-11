@@ -6,6 +6,13 @@
 (set-prefix-key (kbd "C-s"))
 (setf *mouse-focus-policy* :click)
 
+(setf dmenu:*dmenu-position* :top
+      dmenu:*dmenu-font* "TerminusMedium-16"
+      dmenu:*dmenu-background-color* "'#333333'"
+      dmenu:*dmenu-foreground-color* "'#7f7f7f'"
+      dmenu:*dmenu-selected-background-color*  "'#7f7f7f'"
+      dmenu:*dmenu-selected-foreground-color*  "'#333333'")
+
 (defmacro define-keys (map &body keybinds)
   `(progn
      ,@(mapcar (lambda (keybind)
@@ -63,7 +70,28 @@
 (defcommand terminal () ()
   (run-or-raise *terminal* '(:class "Terminal")))
 
+(defcommand dmenu-launch () ()
+  (bt:make-thread
+   (lambda ()
+     (uiop:launch-program
+      (format nil "dmenu_run ~A -p Run: "
+              (dmenu::dmenu-build-cmd-options))))))
+
+(defcommand screenshot () ()
+  (let ((sel (dmenu:dmenu :item-list '("Full" "Selection" "Window")
+                          :prompt "Screenshot: "))
+        (program "scrot")
+        (clip " -e 'xclip -selection clipboard -t image/png -i $f'"))
+    (cond ((string-equal "Full" sel)
+           (run-shell-command (uiop:strcat program clip)))
+          ((string-equal "Window" sel)
+           (run-shell-command (uiop:strcat program " -u" clip)))
+          ((string-equal "Selection" sel)
+           (run-shell-command (uiop:strcat program " -s" clip))))))
+
 (define-keys *root-map*
+  ((kbd "c") "dmenu-call-command")
+  ((kbd "r") "dmenu-launch")
   ((kbd "C-b") "browser")
   ((kbd "C-c") "terminal")
   ((kbd "C-f") "only")
@@ -78,6 +106,7 @@
 ;;------------;;
 
 (define-keys *top-map*
+  ((kbd "Print") "screenshot")
   ((kbd "XF86AudioLowerVolume") "exec pactl set-sink-volume @DEFAULT_SINK@ -5%")
   ((kbd "XF86AudioRaiseVolume") "exec pactl set-sink-volume @DEFAULT_SINK@ +5%")
   ((kbd "XF86AudioMute") "exec pactl set-sink-mute @DEFAULT_SINK@ toggle")

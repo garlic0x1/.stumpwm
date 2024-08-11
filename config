@@ -1,6 +1,12 @@
 ;;; config -*- mode: lisp -*-
 
+#-quicklisp
+(let ((quicklisp-init (merge-pathnames "quicklisp/setup.lisp"
+                                       (user-homedir-pathname))))
+  (when (probe-file quicklisp-init)
+    (load quicklisp-init)))
+
 (let ((asdf:*central-registry*
-       (cons #p"~/.config/stumpwm/"
-             asdf:*central-registry*)))
+        (cons #p"~/.config/stumpwm/"
+              asdf:*central-registry*)))
   (ql:quickload :stumpwm-config))
