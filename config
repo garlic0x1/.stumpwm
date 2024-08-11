@@ -1,0 +1,6 @@
+;;; config -*- mode: lisp -*-
+
+(let ((asdf:*central-registry*
+       (cons #p"~/.config/stumpwm/"
+             asdf:*central-registry*)))
+  (ql:quickload :stumpwm-config))
