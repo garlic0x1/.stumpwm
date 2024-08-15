@@ -1,13 +1,13 @@
 (in-package :stumpwm-config)
 
-(run-shell-command "xinput set-prop 'SynPS/2 Synaptics TouchPad' 'libinput Natural Scrolling Enabled' 1")
-(run-shell-command "xmodmap ~/.Xmodmap")
+(uiop:launch-program "xinput set-prop 'SynPS/2 Synaptics TouchPad' 'libinput Natural Scrolling Enabled' 1")
+(uiop:launch-program "xmodmap ~/.Xmodmap")
 
 (set-prefix-key (kbd "C-s"))
 (setf *mouse-focus-policy* :click)
 
 (setf dmenu:*dmenu-position* :top
-      dmenu:*dmenu-font* "TerminusMedium-16"
+      dmenu:*dmenu-font* "TerminusMedium-14"
       dmenu:*dmenu-background-color* "'#333333'"
       dmenu:*dmenu-foreground-color* "'#7f7f7f'"
       dmenu:*dmenu-selected-background-color*  "'#7f7f7f'"
@@ -53,6 +53,11 @@
 (defcommand battery () ()
   (echo (uiop:read-file-string "/sys/class/power_supply/BAT0/capacity")))
 
+(defcommand playerctl () ()
+  (let ((sel (dmenu:dmenu :item-list '("play-pause" "next" "previous" "stop")
+                          :prompt "Player: ")))
+    (uiop:launch-program (uiop:strcat "playerctl " sel))))
+
 ;;------------;;
 ;; Basic Apps ;;
 ;;------------;;
@@ -71,11 +76,11 @@
   (run-or-raise *terminal* '(:class "Terminal")))
 
 (defcommand dmenu-launch () ()
-  (bt:make-thread
-   (lambda ()
-     (uiop:launch-program
-      (format nil "dmenu_run ~A -p Run: "
-              (dmenu::dmenu-build-cmd-options))))))
+  ;; (bt:make-thread
+  ;;  (lambda ()))
+  (uiop:launch-program
+   (format nil "dmenu_run ~A -p Run: "
+           (dmenu::dmenu-build-cmd-options))))
 
 (defcommand screenshot () ()
   (let ((sel (dmenu:dmenu :item-list '("Full" "Selection" "Window")
@@ -83,15 +88,20 @@
         (program "scrot")
         (clip " -e 'xclip -selection clipboard -t image/png -i $f'"))
     (cond ((string-equal "Full" sel)
-           (run-shell-command (uiop:strcat program clip)))
+           (uiop:launch-program (uiop:strcat program clip)))
           ((string-equal "Window" sel)
-           (run-shell-command (uiop:strcat program " -u" clip)))
+           (uiop:launch-program (uiop:strcat program " -u" clip)))
           ((string-equal "Selection" sel)
-           (run-shell-command (uiop:strcat program " -s" clip))))))
+           (uiop:launch-program (uiop:strcat program " -s" clip))))))
 
 (define-keys *root-map*
   ((kbd "c") "dmenu-call-command")
   ((kbd "r") "dmenu-launch")
+  ((kbd "C-Right") "resize 32 0")
+  ((kbd "C-Left") "resize -32 0")
+  ((kbd "C-]") "gnext")
+  ((kbd "C-[") "gprev")
+  ((kbd "C-r") "iresize")
   ((kbd "C-b") "browser")
   ((kbd "C-c") "terminal")
   ((kbd "C-f") "only")

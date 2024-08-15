@@ -1,7 +1,7 @@
 (in-package :stumpwm-config)
 
-(setf *input-window-gravity* :center
-      *message-window-gravity* :center
+(setf *input-window-gravity* :top
+      *message-window-gravity* :top
       ;; emacs had a large border for some reason
       stumpwm::*window-border-style* :thin)
 
@@ -12,7 +12,7 @@
 (set-font (make-instance 'xft:font
                          :family "DejaVu Sans Mono"
                          :subfamily "Book"
-                         :size 16))
+                         :size 14))
 
 ;; this shit broken
 ;; ;; Head gaps run along the 4 borders of the monitor(s)
