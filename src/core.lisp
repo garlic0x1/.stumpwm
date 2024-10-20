@@ -1,7 +1,10 @@
 (in-package :stumpwm-config)
 
-(uiop:launch-program "xinput set-prop 'SynPS/2 Synaptics TouchPad' 'libinput Natural Scrolling Enabled' 1")
-(uiop:launch-program "xmodmap ~/.Xmodmap")
+(defun xsettings* ()
+  (uiop:launch-program "xinput set-prop 'SynPS/2 Synaptics TouchPad' 'libinput Natural Scrolling Enabled' 1")
+  (uiop:launch-program "xmodmap ~/.Xmodmap"))
+
+(xsettings*)
 
 (set-prefix-key (kbd "C-s"))
 (setf *mouse-focus-policy* :click)
@@ -50,6 +53,9 @@
    :dont-close t
    :port 1337))
 
+(defcommand xsettings () ()
+  (xsettings*))
+
 (defcommand battery () ()
   (echo (uiop:read-file-string "/sys/class/power_supply/BAT0/capacity")))
 
@@ -57,6 +63,23 @@
   (let ((sel (dmenu:dmenu :item-list '("play-pause" "next" "previous" "stop")
                           :prompt "Player: ")))
     (uiop:launch-program (uiop:strcat "playerctl " sel))))
+
+(flet ((brightnessctl (&rest args)
+         (ignore-errors
+          (parse-integer
+           (uiop:run-program
+            (format nil "brightnessctl~{ ~(~a~)~}" args)
+            :output :string)))))
+
+  (defcommand increase-brightness () ()
+    (if (< 1/10 (/ (brightnessctl :get) (brightnessctl :max)))
+        (brightnessctl :set "+5%")
+        (brightnessctl :set "+1%")))
+
+  (defcommand decrease-brightness () ()
+    (if (< 1/10 (/ (brightnessctl :get) (brightnessctl :max)))
+        (brightnessctl :set "5%-")
+        (brightnessctl :set "1%-"))))
 
 ;;------------;;
 ;; Basic Apps ;;
@@ -76,11 +99,10 @@
   (run-or-raise *terminal* '(:class "Terminal")))
 
 (defcommand dmenu-launch () ()
-  ;; (bt:make-thread
-  ;;  (lambda ()))
   (uiop:launch-program
    (format nil "dmenu_run ~A -p Run: "
            (dmenu::dmenu-build-cmd-options))))
+
 
 (defcommand screenshot () ()
   (let ((sel (dmenu:dmenu :item-list '("Full" "Selection" "Window")
@@ -95,21 +117,26 @@
            (uiop:launch-program (uiop:strcat program " -s" clip))))))
 
 (define-keys *root-map*
-  ((kbd "c") "dmenu-call-command")
-  ((kbd "r") "dmenu-launch")
+  ((kbd "C-c") "dmenu-call-command")
+  ((kbd "C-r") "dmenu-launch")
+  ((kbd "C-b") "dmenu-windowlist")
+  ((kbd "C-i") "iresize")
   ((kbd "C-Right") "resize 32 0")
   ((kbd "C-Left") "resize -32 0")
   ((kbd "C-]") "gnext")
   ((kbd "C-[") "gprev")
-  ((kbd "C-r") "iresize")
-  ((kbd "C-b") "browser")
-  ((kbd "C-c") "terminal")
+  ((kbd "b") "browser")
+  ((kbd "c") "terminal")
+  ((kbd "e") "emacs")
   ((kbd "C-f") "only")
-  ((kbd "C-k") "delete")
+  ((kbd "C-q") "delete")
   ((kbd "s") "vsplit")
   ((kbd "v") "hsplit")
-  ((kbd "j") "next")
-  ((kbd "k") "prev"))
+  ((kbd "C-h") "move-focus left")
+  ((kbd "C-j") "move-focus down")
+  ((kbd "C-k") "move-focus up")
+  ((kbd "C-l") "move-focus right")
+  )
 
 ;;------------;;
 ;; Media Keys ;;
@@ -121,5 +148,5 @@
   ((kbd "XF86AudioRaiseVolume") "exec pactl set-sink-volume @DEFAULT_SINK@ +5%")
   ((kbd "XF86AudioMute") "exec pactl set-sink-mute @DEFAULT_SINK@ toggle")
   ((kbd "XF86AudioMicMute") "exec pamixer --default-source --toggle-mute")
-  ((kbd "XF86MonBrightnessUp") "exec brightnessctl set +5%")
-  ((kbd "XF86MonBrightnessDown") "exec brightnessctl set 5%-"))
+  ((kbd "XF86MonBrightnessUp") "increase-brightness")
+  ((kbd "XF86MonBrightnessDown") "decrease-brightness"))

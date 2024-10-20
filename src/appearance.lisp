@@ -14,6 +14,9 @@
                          :subfamily "Book"
                          :size 14))
 
+;; (set-font "-xos4-terminus-medium-r-normal-*-20-*-*-*-*-*-*-*")
+;; (set-font "-apple-sfmono-medium-r-normal-18-140-*-*-*-*-*-*")
+
 ;; this shit broken
 ;; ;; Head gaps run along the 4 borders of the monitor(s)
 ;; (setf swm-gaps:*head-gaps-size* 0)

@@ -59,10 +59,16 @@
     (register-ml-on-click-id :ml-on-click-group #'ml-on-click-group)
     "^(:on-click :ml-on-click-group)[%n]^(:on-click-end)"))
 
+(defun battery-capacity ()
+  (let* ((bat0 (uiop:read-file-line "/sys/class/power_supply/BAT0/capacity"))
+         (bat1 (uiop:read-file-line "/sys/class/power_supply/BAT1/capacity"))
+         (total (+ (parse-integer bat0) (parse-integer bat1))))
+    (floor (/ total 2))))
+
 (deftimed 1 show-battery ()
   (ignore-errors
    (format nil "Battery: ~a% | "
-           (uiop:read-file-line "/sys/class/power_supply/BAT0/capacity"))))
+           (battery-capacity))))
 
 (setf *window-format* "%m%n%s%c"
       *time-modeline-string* "%a %b %e %k:%M"
@@ -76,4 +82,3 @@
        "%d"))
 
 (enable-mode-line (current-screen) (current-head) t)
-;; (set-font "-xos4-terminus-medium-r-normal-*-20-*-*-*-*-*-*-*")
